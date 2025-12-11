@@ -1,0 +1,48 @@
+pip_security investigation
+
+- file:
+    writes to /etc/crontab
+    writes to /usr/local/bin/rootkit
+    writes to /tmp folder the files in pip_security_file_gen.tgz (list of shared libs)
+
+- domain:
+    talks to xn--3-qga.com  (2015-07-26) -> 185.52.1.59
+                            (2018-09-09) -> 13.59.56.238
+
+    185.52.1.59 ->
+        firecarrot.com
+        static.agalera.info
+        agalera.info
+        www.agalera.info
+        static.firecarrot.com
+        flightlens.firecarrot.com
+        estefaniagalera.com
+        fireleek.com
+        brutalbrain.com
+
+- ip: 
+    talks to 151.101.185.63
+
+
+- sysdig rules to check
+    sysdig -r pip_security_scap.gz0 -p "evt: %evt.type file: %fd.name" "evt.is_io_write = true"
+    sysdig -r pip_security_scap.gz0 -p "evt: %evt.type data: %evt.arg.data" "evt.type = recvfrom"
+    sysdig -r pip_security_scap.gz0 -p "evt: %evt.type cip: %fd.cip sip: %fd.sip" "evt.type = connect"
+
+
+- the content written to crontab
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user  command
+17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly
+25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+#
+
+* * * * * root  ps cax | grep rootkit || rootkit
+
+
+
